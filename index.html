@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Si no arriesgas, no puedes crear un futuro.</title>
+  <title>Para Ti</title>
   <style>
     @import url("");
 
@@ -317,6 +317,92 @@
     function goToPhoto(i) { currentPhotoIndex = i; updateCarouselDisplay(); }
     function startCarouselAutoAdvance() { carouselInterval = setInterval(nextPhoto, CONFIG.CAROUSEL_INTERVAL); }
     function stopCarouselAutoAdvance() { if (carouselInterval) { clearInterval(carouselInterval); carouselInterval = null; } }
+
+    // 💕 Corazones Autogenerados (SVG + degradés neutros + forma variable)
+    function createFloatingHeartsSVG() {
+      const container = document.getElementById("floatingHearts");
+      const palettes = [
+        getComputedStyle(document.documentElement).getPropertyValue('--palette-1'),
+        getComputedStyle(document.documentElement).getPropertyValue('--palette-2'),
+        getComputedStyle(document.documentElement).getPropertyValue('--palette-3'),
+        getComputedStyle(document.documentElement).getPropertyValue('--palette-4'),
+        getComputedStyle(document.documentElement).getPropertyValue('--palette-5')
+      ];
+
+      const makeHeart = () => {
+        // Limitar elementos para rendimiento
+        if (container.childElementCount > CONFIG.HEARTS_MAX_ON_SCREEN) {
+          container.firstElementChild?.remove();
+        }
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "floating-heart";
+        const size = Math.random() * 32 + 18; // 18–50 px
+        wrapper.style.left = Math.random() * 100 + "%";
+        wrapper.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
+        wrapper.style.animationDuration = (Math.random() * 4 + 6).toFixed(2) + "s";
+
+        // Paleta neutra aleatoria
+        const [h, s, l] = palettes[Math.floor(Math.random() * palettes.length)].split(',').map(x => x.trim());
+        const l2 = Math.max(0, Math.min(100, parseFloat(l) + (Math.random() * 12 - 6))).toFixed(1) + '%';
+
+        // Degradé
+        const gradId = `g_${Math.random().toString(36).slice(2)}`;
+
+        // Variar "redondez" del corazón
+        const plump = 0.5 + Math.random() * 0.8; // 0.5–1.3
+        const tilt = (Math.random() * 12 - 6).toFixed(2); // -6–6°
+
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", size);
+        svg.setAttribute("height", size);
+        svg.setAttribute("viewBox", "0 0 100 100");
+        svg.style.transform = `rotate(${tilt}deg)`;
+
+        const defs = document.createElementNS(svgNS, "defs");
+        const lg = document.createElementNS(svgNS, "linearGradient");
+        lg.setAttribute("id", gradId);
+        lg.setAttribute("x1", "0"); lg.setAttribute("y1", "0"); lg.setAttribute("x2", "1"); lg.setAttribute("y2", "1");
+        const stop1 = document.createElementNS(svgNS, "stop"); stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", `hsl(${h}, ${s}, ${l})`);
+        const stop2 = document.createElementNS(svgNS, "stop"); stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", `hsl(${h}, ${s}, ${l2})`);
+        lg.appendChild(stop1); lg.appendChild(stop2); defs.appendChild(lg); svg.appendChild(defs);
+
+        const path = document.createElementNS(svgNS, "path");
+        const p = plump;
+        const d = `M50 ${20 + 5 * (1 - p)}
+                   C ${35 - 10 * (1 - p)} ${5 + 10 * (1 - p)}, 5 ${25 + 10 * (1 - p)}, 20 40
+                   C 40 ${60 + 10 * (1 - p)}, 50 ${70 + 8 * (1 - p)}, 50 80
+                   C 50 ${70 + 8 * (1 - p)}, 60 ${60 + 10 * (1 - p)}, 80 40
+                   C 95 ${25 + 10 * (1 - p)}, ${65 + 10 * (1 - p)} ${5 + 10 * (1 - p)}, 50 ${20 + 5 * (1 - p)}Z`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", `url(#${gradId})`);
+        path.setAttribute("stroke", "rgba(255,255,255,.15)");
+        path.setAttribute("stroke-width", "1");
+        svg.appendChild(path);
+
+        wrapper.appendChild(svg);
+        container.appendChild(wrapper);
+
+        setTimeout(() => wrapper.remove(), 12000);
+      };
+
+      // Generación continua
+      const seedBatch = Math.min(5, CONFIG.HEARTS_MAX_ON_SCREEN);
+      for (let i = 0; i < seedBatch; i++) setTimeout(makeHeart, i * 200);
+      setInterval(makeHeart, CONFIG.HEARTS_INTERVAL_MS);
+    }
+////
+
+    // Modal
+    function showModal() { document.getElementById("modal").classList.add("show"); stopCarouselAutoAdvance(); if (!audioInitialized) initializeAudio(); }
+    function hideModal() { document.getElementById("modal").classList.remove("show"); if (CONFIG.CAROUSEL_AUTO_ADVANCE) startCarouselAutoAdvance(); }
+
+    // Mensaje final + explosión de corazones SVG
+    function showFinalMessage() {
+      const finalMessage = document.getElementById("finalMessage");
+      finalMessage.classList.add("show");
+    }
 
     function createHeartExplosionSVG() {
       const container = document.getElementById("floatingHearts");
